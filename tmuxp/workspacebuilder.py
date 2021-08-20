@@ -5,6 +5,8 @@ tmuxp.workspacebuilder
 
 """
 import logging
+import os
+from pathlib import Path
 
 from libtmux.exc import TmuxSessionExists
 from libtmux.pane import Pane
@@ -435,12 +437,13 @@ def freeze(session):
 
             current_cmd = p.current_command
 
-            def filter_interpretters_and_shells():
-                return current_cmd.startswith('-') or any(
-                    current_cmd.endswith(cmd) for cmd in ['python', 'ruby', 'node']
-                )
-
-            if filter_interpretters_and_shells():
+            exclude_cmds = ['python', 'ruby', 'node']
+            shell_cmd = Path(os.environ.get("SHELL", "")).name
+            if shell_cmd:
+                exclude_cmds.append(shell_cmd)
+            if current_cmd.startswith('-') or any(
+                current_cmd.endswith(cmd) for cmd in  exclude_cmds
+            ):
                 current_cmd = None
 
             if current_cmd:
